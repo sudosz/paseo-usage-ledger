@@ -1,7 +1,7 @@
 {
   "id": "usage-ledger",
   "name": "Usage Ledger",
-  "description": "Token use, cache savings, and estimated cost across OpenCode, Claude Code, and Codex.",
+  "description": "Tokens, cache savings, and estimated cost across OpenCode, Claude Code, Codex, and Bifrost lanes, with a sidebar summary.",
   "requirements": {
     "paseo": ">=0.16.0"
   }
