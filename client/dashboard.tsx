@@ -555,8 +555,8 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
           <View style={{ ...cardStyle(theme), padding: compact ? 14 : 18, gap: 16 }}>
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "flex-end",
+                flexDirection: compact ? "column" : "row",
+                alignItems: compact ? "stretch" : "flex-end",
                 justifyContent: "space-between",
                 flexWrap: "wrap",
                 gap: 10,
@@ -574,13 +574,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                     : "Daily buckets, split by harness"}
                 </Text>
               </View>
-              <View
-                style={{
-                  flexDirection: compact ? "column" : "row",
-                  alignItems: "flex-start",
-                  gap: 7,
-                }}
-              >
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
                 <Segmented<ChartMetric>
                   theme={theme}
                   value={metric}
