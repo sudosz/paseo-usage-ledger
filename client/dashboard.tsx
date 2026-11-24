@@ -6,7 +6,7 @@ import { Icon } from "@getpaseo/plugin/client/ui";
 import { summary, type Range } from "../shared/contracts";
 import { formatAgo, formatBucket, formatPct, formatRange, formatTokens, formatUsd, share } from "./format";
 import { FlowChart, type ChartMetric, type ChartView } from "./flow-chart";
-import { withAlpha, seriesColors } from "./palette";
+import { harnessColor, withAlpha } from "./palette";
 import { Chip, EmptyState, MetricCard, Meter, SectionHeader, Segmented, cardStyle, type HoverState } from "./ui";
 
 const RANGES: Array<{ value: Range; label: string }> = [
@@ -49,9 +49,8 @@ function DetailStat({
       <Text
         style={{
           color: theme.colors.foregroundMuted,
-          fontSize: 9.5,
-          fontWeight: "600",
-          letterSpacing: 0.6,
+          fontSize: 10.5,
+          fontWeight: "500",
         }}
       >
         {label}
@@ -88,9 +87,8 @@ function HeroStat({
       <Text
         style={{
           color: theme.colors.foregroundMuted,
-          fontSize: 10,
-          fontWeight: "600",
-          letterSpacing: 0.7,
+          fontSize: 11,
+          fontWeight: "500",
         }}
       >
         {label}
@@ -181,23 +179,39 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
   });
   const data = query.data;
   const compact = layout.compact;
-  const colors = useMemo(() => seriesColors(theme), [theme]);
   const models = data?.models ?? [];
   const visibleModels = showAllModels ? models : models.slice(0, MODEL_PREVIEW);
   const unpricedModels = models.filter((model) => !model.priced);
   const harnessColorByName = useMemo(
     () =>
       new Map(
-        (data?.harnesses ?? []).map((harness, index) => [
+        (data?.harnesses ?? []).map((harness) => [
           harness.name,
-          colors[index % colors.length],
+          harnessColor(theme, harness.id),
         ]),
       ),
-    [data?.harnesses, colors],
+    [data?.harnesses, theme],
   );
   const total = data?.totals;
   const prompt = (total?.input ?? 0) + (total?.cacheRead ?? 0) + (total?.cacheWrite ?? 0);
   const cacheRate = prompt > 0 ? share(total?.cacheRead ?? 0, prompt) : 0;
+  const peak = useMemo(() => {
+    const valueOf = (point: { total: number; cost: number; cacheRead: number }) =>
+      metric === "cost" ? point.cost : metric === "cached" ? point.cacheRead : point.total;
+    let best = data?.series[0];
+    for (const point of data?.series ?? []) {
+      if (!best || valueOf(point) > valueOf(best)) best = point;
+    }
+    return best;
+  }, [data?.series, metric]);
+  const peakValue =
+    peak === undefined
+      ? null
+      : metric === "cost"
+        ? formatUsd(peak.cost)
+        : metric === "cached"
+          ? formatTokens(peak.cacheRead)
+          : formatTokens(peak.total);
 
   const rangeControl = (
     <Segmented<Range>
@@ -231,18 +245,6 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
         }}
       >
         <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: -150,
-            right: -100,
-            width: 340,
-            height: 340,
-            borderRadius: 170,
-            backgroundColor: withAlpha(theme.colors.accent, 0.08),
-          }}
-        />
-        <View
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -251,30 +253,15 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
             gap: 10,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <View
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 7,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: withAlpha(theme.colors.accent, 0.14),
-              }}
-            >
-              <Icon name="ChartNoAxesCombined" size={15} color={theme.colors.accent} />
-            </View>
-            <Text
-              style={{
-                color: theme.colors.foregroundMuted,
-                fontSize: 10.5,
-                fontWeight: "600",
-                letterSpacing: 0.9,
-              }}
-            >
-              PROCESSED · {formatRange(range).toUpperCase()}
-            </Text>
-          </View>
+          <Text
+            style={{
+              color: theme.colors.foregroundMuted,
+              fontSize: 12,
+              fontWeight: "500",
+            }}
+          >
+            Processed tokens · {formatRange(range)}
+          </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {rangeControl}
             <RefreshButton
@@ -414,7 +401,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
             >
               <HeroStat
                 theme={theme}
-                label="API-EQUIVALENT COST"
+                label="API-equivalent cost"
                 value={formatUsd(total.cost)}
                 detail={
                   unpricedModels.length
@@ -425,19 +412,19 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
               />
               <HeroStat
                 theme={theme}
-                label="CACHE SAVINGS"
+                label="Cache savings"
                 value={formatUsd(data.cacheSavingsUsd)}
                 detail="vs full input rates"
               />
               <HeroStat
                 theme={theme}
-                label="AVG / DAY"
+                label="Avg / day"
                 value={formatUsd((total.cost ?? 0) / RANGE_DAYS[range])}
                 detail={`${formatTokens(prompt)} prompt tokens`}
               />
               <HeroStat
                 theme={theme}
-                label="COST / SESSION"
+                label="Cost / session"
                 value={formatUsd(total.sessions > 0 ? total.cost / total.sessions : 0)}
                 detail={`${total.sessions} sessions`}
               />
@@ -520,7 +507,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
             <MetricCard
               theme={theme}
               compact={compact}
-              label="CACHED INPUT"
+              label="Cached input"
               value={formatTokens(total.cacheRead)}
               hint={`${formatPct(cacheRate)} of prompt`}
               bar={{ value: share(total.cacheRead, total.processed), color: theme.colors.accent }}
@@ -528,7 +515,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
             <MetricCard
               theme={theme}
               compact={compact}
-              label="UNCACHED INPUT"
+              label="Uncached input"
               value={formatTokens(total.input)}
               hint="fresh prompt tokens"
               bar={{
@@ -539,7 +526,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
             <MetricCard
               theme={theme}
               compact={compact}
-              label="CACHE WRITE"
+              label="Cache write"
               value={formatTokens(total.cacheWrite)}
               hint="written to cache"
               bar={{
@@ -550,7 +537,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
             <MetricCard
               theme={theme}
               compact={compact}
-              label="OUTPUT"
+              label="Output"
               value={formatTokens(total.output)}
               hint="generated output"
               bar={{
@@ -575,7 +562,11 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                   Token flow
                 </Text>
                 <Text style={{ color: theme.colors.foregroundMuted, fontSize: 11.5 }}>
-                  Stacked by harness · hover for the exact bucket
+                  {peak && peakValue
+                    ? `Peak ${formatBucket(peak.at, range)} · ${peakValue}${
+                        metric === "tokens" ? " tokens" : metric === "cached" ? " cached" : ""
+                      }`
+                    : "Daily buckets, split by harness"}
                 </Text>
               </View>
               <View style={{ flexDirection: "row", gap: 7, flexWrap: "wrap" }}>
@@ -638,8 +629,8 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
               }
             />
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-              {data.harnesses.map((harness, index) => {
-                const color = colors[index % colors.length];
+              {data.harnesses.map((harness) => {
+                const color = harnessColor(theme, harness.id);
                 const partiallyUnpriced = harness.unpricedTokens > 0;
                 const fullyUnpriced = harness.pricedTokens === 0;
                 return (
@@ -760,12 +751,12 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                   backgroundColor: theme.colors.surface0,
                 }}
               >
-                <Text style={{ flex: 2.4, color: theme.colors.foregroundMuted, fontSize: 10 }}>
-                  MODEL
+                <Text style={{ flex: 2.4, color: theme.colors.foregroundMuted, fontSize: 11 }}>
+                  Model
                 </Text>
                 {compact ? null : (
-                  <Text style={{ width: 86, color: theme.colors.foregroundMuted, fontSize: 10 }}>
-                    CACHE
+                  <Text style={{ width: 86, color: theme.colors.foregroundMuted, fontSize: 11 }}>
+                    Cache
                   </Text>
                 )}
                 <Text
@@ -773,20 +764,20 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                     width: 82,
                     textAlign: "right",
                     color: theme.colors.foregroundMuted,
-                    fontSize: 10,
+                    fontSize: 11,
                   }}
                 >
-                  TOKENS
+                  Tokens
                 </Text>
                 <Text
                   style={{
                     width: 88,
                     textAlign: "right",
                     color: theme.colors.foregroundMuted,
-                    fontSize: 10,
+                    fontSize: 11,
                   }}
                 >
-                  COST
+                  Cost
                 </Text>
               </View>
               {visibleModels.map((model, index) => {
@@ -921,27 +912,27 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                           />
                           <DetailStat
                             theme={theme}
-                            label="CACHED"
+                            label="Cached"
                             value={formatTokens(model.cacheRead)}
                           />
                           <DetailStat
                             theme={theme}
-                            label="UNCACHED"
+                            label="Uncached"
                             value={formatTokens(model.input)}
                           />
                           <DetailStat
                             theme={theme}
-                            label="CACHE WRITE"
+                            label="Cache write"
                             value={formatTokens(model.cacheWrite)}
                           />
                           <DetailStat
                             theme={theme}
-                            label="OUTPUT"
+                            label="Output"
                             value={formatTokens(model.output)}
                           />
                           <DetailStat
                             theme={theme}
-                            label="EST. COST"
+                            label="Est. cost"
                             value={model.priced ? formatUsd(model.cost) : "—"}
                           />
                         </View>

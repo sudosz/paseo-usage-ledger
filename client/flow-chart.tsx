@@ -12,7 +12,7 @@ import {
 import type { Range } from "../shared/contracts";
 import { formatBucket, formatTokens, formatUsd } from "./format";
 import { niceScale, sampleCurve } from "./chart-scale";
-import { seriesColors, withAlpha } from "./palette";
+import { harnessColor, withAlpha } from "./palette";
 
 export type ChartMetric = "tokens" | "cached" | "cost";
 export type ChartView = "curve" | "bars";
@@ -64,7 +64,10 @@ export function FlowChart({
   theme: PluginTheme;
   compact: boolean;
 }) {
-  const colors = useMemo(() => seriesColors(theme), [theme]);
+  const colors = useMemo(
+    () => series.map((entry) => harnessColor(theme, entry.id)),
+    [series, theme],
+  );
   const plotHeight = compact ? 148 : 188;
   const samples = compact ? 72 : 108;
   const bucketCount = series[0]?.points.length ?? 0;
@@ -358,10 +361,8 @@ export function FlowChart({
                             height: percentage(height, plot.scale.max),
                             backgroundColor: withAlpha(
                               colors[index % colors.length],
-                              index === series.length - 1 ? 0.3 : 0.18,
+                              index === series.length - 1 ? 0.32 : 0.2,
                             ),
-                            borderTopWidth: 1.5,
-                            borderTopColor: colors[index % colors.length],
                           }}
                         />
                       );

@@ -3,7 +3,7 @@ import type {
   PluginSidebarItemProps,
 } from "@getpaseo/plugin/client";
 import { useRpc } from "@getpaseo/plugin/client";
-import { Icon } from "@getpaseo/plugin/client/ui";
+import { Icon, SidebarRow } from "@getpaseo/plugin/client/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { summary } from "../shared/contracts";
 import { formatAgo, formatPct, formatTokens, formatUsd, share } from "./format";
-import { seriesColors, withAlpha } from "./palette";
+import { harnessColor, withAlpha } from "./palette";
 import { Chip, Meter, cardStyle } from "./ui";
 
 type HoverState = PressableStateCallbackType & { hovered?: boolean };
@@ -39,6 +39,18 @@ function useDailyUsage() {
     refetchInterval: 120_000,
     refetchOnWindowFocus: true,
   });
+}
+
+/** Top-level sidebar entry so the dashboard is discoverable without the footer. */
+export function UsageNavItem({ currentScreen, openScreen }: PluginSidebarItemProps) {
+  return (
+    <SidebarRow
+      icon="ChartNoAxesCombined"
+      label="Usage Ledger"
+      active={currentScreen?.screenId === "usage-ledger"}
+      onPress={() => openScreen({ screenId: "usage-ledger" })}
+    />
+  );
 }
 
 /** A ccusage-style footer row: icon, 24h tokens, cache meter, cost. */
@@ -147,7 +159,6 @@ export function UsagePopover({ theme, layout, openScreen }: PluginPopoverProps) 
   const query = useDailyUsage();
   const data = query.data;
   const total = data?.totals;
-  const colors = seriesColors(theme);
   const rootStyle = {
     gap: 12,
     padding: layout.compact ? 16 : 14,
@@ -229,14 +240,14 @@ export function UsagePopover({ theme, layout, openScreen }: PluginPopoverProps) 
       </View>
 
       <View style={{ gap: 7 }}>
-        {data.harnesses.map((harness, index) => (
+        {data.harnesses.map((harness) => (
           <View key={harness.id} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
             <View
               style={{
                 width: 7,
                 height: 7,
                 borderRadius: 2,
-                backgroundColor: colors[index % colors.length],
+                backgroundColor: harnessColor(theme, harness.id),
               }}
             />
             <Text
