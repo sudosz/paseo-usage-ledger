@@ -223,6 +223,11 @@ async function loadBifrost(
 const cache = new Map<Range, { at: number; value: LedgerSummary }>();
 const inflight = new Map<Range, Promise<LedgerSummary>>();
 
+/** Drop cached summaries after a turn; the next read scans the new log tail. */
+export function invalidateSummaries(): void {
+  cache.clear();
+}
+
 export async function summary(range: Range, refresh = false): Promise<LedgerSummary> {
   const hit = cache.get(range);
   if (!refresh && hit && Date.now() - hit.at < TTL_MS) return hit.value;
