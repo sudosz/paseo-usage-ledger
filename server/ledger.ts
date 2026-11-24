@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { createReadStream } from "node:fs";
-import { readdir, stat } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
@@ -26,6 +26,7 @@ const OPENCODE_DB = process.env.OPENCODE_DB ?? join(HOME, ".local/share/opencode
 const CLAUDE_PROJECTS = join(process.env.CLAUDE_CONFIG_DIR ?? join(HOME, ".claude"), "projects");
 const CODEX_SESSIONS = join(process.env.CODEX_HOME ?? join(HOME, ".codex"), "sessions");
 const BIFROST_DB = process.env.BIFROST_LOG_DB ?? "/opt/bifrost/data/logs.db";
+const BIFROST_JSON = process.env.BIFROST_USAGE_JSON ?? join(HOME, ".paseo/usage/bifrost.json");
 
 type Counters = {
   processed: number;
@@ -320,17 +321,20 @@ async function loadOpenCode(ledger: Ledger, since: number, notes: string[], bifr
     for (const row of rows) {
       const m = opencodeModel(String(row.model ?? ""));
       const lane = bifrost.get(String(row.id));
+      const provider = lane?.provider ?? m.provider;
+      const model = lane?.model ?? (m.provider === "bifrost" ? `bifrost/${m.model}` : m.model);
+      const reportedCost = Number(row.cost ?? 0);
       ledger.add({
         harnessId: "opencode",
         harnessName: "OpenCode",
-        provider: lane?.provider ?? m.provider,
-        model: lane?.model ?? m.model,
+        provider,
+        model,
         at: Number(row.time_updated ?? row.time_created ?? 0),
         input: Number(row.tokens_input ?? 0),
         cacheRead: Number(row.tokens_cache_read ?? 0),
         cacheWrite: Number(row.tokens_cache_write ?? 0),
         output: Number(row.tokens_output ?? 0),
-        cost: Number(row.cost ?? 0),
+        cost: reportedCost > 0 || isFree(model) ? reportedCost : null,
         sessionId: String(row.id),
       });
     }
@@ -378,6 +382,22 @@ async function loadCodex(ledger: Ledger, since: number, notes: string[]) {
 async function loadBifrost(since: number, notes: string[]): Promise<Map<string, { provider: string; model: string }>> {
   const out = new Map<string, { provider: string; model: string }>();
   try {
+    const data = JSON.parse(await readFile(BIFROST_JSON, "utf8")) as { rows?: Array<Record<string, any>> } | Array<Record<string, any>>;
+    const rows = Array.isArray(data) ? data : data.rows ?? [];
+    for (const row of rows) {
+      const session = String(row.session_id ?? row.sessionId ?? "");
+      if (!session || out.has(session)) continue;
+      if (Number(row.prompt_tokens ?? row.promptTokens ?? 0) <= 0) continue;
+      out.set(session, { provider: String(row.provider ?? "bifrost"), model: String(row.model ?? "unknown") });
+    }
+    if (out.size) notes.push(`Bifrost snapshot: attributed ${out.size} sessions by their busiest lane.`);
+    else notes.push("Bifrost snapshot is empty; using OpenCode provider/model metadata.");
+    return out;
+  } catch {
+    // A direct DB mount is optional; the snapshot is preferred because it does
+    // not expose Bifrost's config database to the Paseo container.
+  }
+  try {
     const db = new DatabaseSync(BIFROST_DB, { readOnly: true } as any);
     const rows = db.prepare(
       `select session_id, provider, model, count(*) as n
@@ -390,7 +410,7 @@ async function loadBifrost(since: number, notes: string[]): Promise<Map<string, 
     }
     if (out.size) notes.push(`Bifrost: attributed ${out.size} sessions by their busiest lane.`);
   } catch {
-    notes.push("Bifrost log DB unavailable; using OpenCode provider/model metadata.");
+    notes.push("Bifrost attribution unavailable; using OpenCode provider/model metadata.");
   }
   return out;
 }
