@@ -138,7 +138,9 @@ export function FlowChart({
   const hoveredFraction =
     hoverIndex === null || bucketCount <= 1 ? 0 : hoverIndex / (bucketCount - 1);
   const tooltipOnRight = hoveredFraction > 0.55;
-  const hoveredAt = series[0]?.points[hoverIndex ?? 0]?.at;
+  // Keep the readout hidden until the pointer or a touch actually selects a
+  // bucket; otherwise the chart shows a permanent tooltip for bucket zero.
+  const hoveredAt = hoverIndex === null ? undefined : series[0]?.points[hoverIndex]?.at;
 
   const stack = useMemo(() => {
     const cumulative: number[][] = [];
