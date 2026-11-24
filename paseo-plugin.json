@@ -1,0 +1,8 @@
+{
+  "id": "usage-ledger",
+  "name": "Usage Ledger",
+  "description": "Token use, cache savings, and estimated cost across OpenCode, Claude Code, and Codex.",
+  "requirements": {
+    "paseo": ">=0.16.0"
+  }
+}
