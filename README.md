@@ -42,7 +42,7 @@ paseo plugin update usage-ledger
 - Per-harness sessions, cache rate, spend, and unpriced volume.
 - Per-model tokens, cache rate, share, blended cost per million tokens, and the full token split on expand.
 - **Unpriced** for any model without a reported cost or a bundled rate.
-- Automatic provider marks on harness and model rows. Claude, OpenAI, Codex, DeepSeek, Gemini, GLM, Kimi, Qwen, Mistral, Llama, Antigravity, OpenCode, Bifrost, and Ollama are recognized from the logged strings; unknown providers get a neutral chip. No brand assets are downloaded.
+- Automatic provider marks on harness and model rows. Claude, OpenAI, Codex, DeepSeek, Gemini, GLM, Kimi, Qwen, Mistral, Llama, Antigravity, OpenCode, Bifrost, Cursor, Copilot, and Ollama are recognized from the logged strings; unknown providers get a neutral chip. Marks are bundled, never fetched. Raster marks come from Simple Icons (CC0) and LobeHub Icons (MIT); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 The chart names its peak bucket. When a selected range begins before the first recorded usage, the footer says where the data starts instead of leaving an unexplained gap.
 

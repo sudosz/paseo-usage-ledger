@@ -84,6 +84,20 @@ const RULES: Rule[] = [
     test: /qwen|alibaba|tongyi/i,
   },
   {
+    id: "cursor",
+    label: "Cursor",
+    icon: "MousePointer2",
+    color: "#8b8b93",
+    test: /\bcursor\b/i,
+  },
+  {
+    id: "copilot",
+    label: "Copilot",
+    icon: "Github",
+    color: "#8b8b93",
+    test: /copilot/i,
+  },
+  {
     id: "mistral",
     label: "Mistral",
     icon: "Wind",
