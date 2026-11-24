@@ -43,7 +43,8 @@ Controls:
 
 - The 24h query scans only recent Claude/Codex files by mtime and the OpenCode session table.
 - JSONL parses are cached per file by mtime + size.
-- Repeated scans within 60 seconds return the cached summary.
+- Repeated scans within 60 seconds return the cached summary; a finished turn invalidates it.
+- The footer checks the 24h rollup every two minutes; the screen scans on open, refresh or focus.
 - Concurrent requests for one range share a single in-flight scan.
 - The chart is pure client-side; changing metric or curve/bars never refetches.
 

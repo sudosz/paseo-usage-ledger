@@ -36,8 +36,9 @@ Reported OpenCode costs are used when present. Claude and Codex costs are estima
 
 ## Lightweight by design
 
-- No background polling or scheduled jobs.
-- On-demand scans, cached for 60 seconds per range, with in-flight request deduplication.
+- No scheduled jobs and no per-token updates.
+- Screen scans run on open, refresh or focus; summaries cache for 60 seconds with in-flight deduplication.
+- The always-mounted footer checks a cached 24h rollup every two minutes, and a finished turn invalidates the server cache.
 - JSONL files are parsed once per mtime/size and cached in memory.
 - OpenCode reads only the `session` table, not the 3+ GiB database.
 - SQLite handles are opened read-only and closed after each query.
