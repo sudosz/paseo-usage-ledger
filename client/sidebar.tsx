@@ -15,7 +15,8 @@ import {
 } from "react-native";
 import { summary } from "../shared/contracts";
 import { formatAgo, formatPct, formatTokens, formatUsd, share } from "./format";
-import { harnessColor, withAlpha } from "./palette";
+import { withAlpha } from "./palette";
+import { ProviderMark } from "./provider-mark";
 import { Chip, Meter, cardStyle } from "./ui";
 
 type HoverState = PressableStateCallbackType & { hovered?: boolean };
@@ -242,13 +243,10 @@ export function UsagePopover({ theme, layout, openScreen }: PluginPopoverProps) 
       <View style={{ gap: 7 }}>
         {data.harnesses.map((harness) => (
           <View key={harness.id} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-            <View
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: 2,
-                backgroundColor: harnessColor(theme, harness.id),
-              }}
+            <ProviderMark
+              theme={theme}
+              input={{ harness: harness.id, provider: harness.id }}
+              size={14}
             />
             <Text
               numberOfLines={1}

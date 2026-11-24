@@ -7,6 +7,7 @@ import { summary, type Range } from "../shared/contracts";
 import { formatAgo, formatBucket, formatPct, formatRange, formatTokens, formatUsd, share } from "./format";
 import { FlowChart, type ChartMetric, type ChartView } from "./flow-chart";
 import { harnessColor, withAlpha } from "./palette";
+import { ProviderMark } from "./provider-mark";
 import { Chip, EmptyState, MetricCard, Meter, SectionHeader, Segmented, cardStyle, type HoverState } from "./ui";
 
 const RANGES: Array<{ value: Range; label: string }> = [
@@ -651,8 +652,10 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                     }}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                      <View
-                        style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: color }}
+                      <ProviderMark
+                        theme={theme}
+                        input={{ harness: harness.id, provider: harness.id }}
+                        size={15}
                       />
                       <Text
                         style={{
@@ -813,6 +816,15 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                     >
                       <View style={{ flex: 2.4, gap: 3, paddingRight: 10 }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <ProviderMark
+                            theme={theme}
+                            input={{
+                              harness: model.harness,
+                              provider: model.provider,
+                              model: model.model,
+                            }}
+                            size={15}
+                          />
                           <Text
                             numberOfLines={1}
                             style={{
