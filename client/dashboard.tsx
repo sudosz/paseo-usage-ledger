@@ -212,6 +212,11 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
         : metric === "cached"
           ? formatTokens(peak.cacheRead)
           : formatTokens(peak.total);
+  const firstActiveIndex = data?.series.findIndex((point) => point.total > 0) ?? -1;
+  const firstActive =
+    firstActiveIndex > 1 && data
+      ? formatBucket(data.series[firstActiveIndex].at, range)
+      : null;
 
   const rangeControl = (
     <Segmented<Range>
@@ -610,6 +615,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
             >
               <Text style={{ color: theme.colors.foregroundMuted, fontSize: 10.5 }}>
                 {formatBucket(data.since, range)} — {formatBucket(data.until, range)}
+                {firstActive ? ` · first usage ${firstActive}` : ""}
               </Text>
               <Text style={{ color: theme.colors.foregroundMuted, fontSize: 10.5 }}>
                 {data.series.length} buckets · {formatRange(range)}

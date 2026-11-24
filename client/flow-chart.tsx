@@ -69,7 +69,9 @@ export function FlowChart({
     [series, theme],
   );
   const plotHeight = compact ? 148 : 188;
-  const samples = compact ? 72 : 108;
+  // Enough slivers that the sampled curve reads as a line rather than a
+  // staircase; the screen renders only while it is open.
+  const samples = compact ? 120 : 216;
   const bucketCount = series[0]?.points.length ?? 0;
   const plot = useMemo(() => {
     const maxValue = Math.max(
@@ -361,7 +363,7 @@ export function FlowChart({
                             height: percentage(height, plot.scale.max),
                             backgroundColor: withAlpha(
                               colors[index % colors.length],
-                              index === series.length - 1 ? 0.32 : 0.2,
+                              index === series.length - 1 ? 0.34 : 0.22,
                             ),
                           }}
                         />
