@@ -24,7 +24,7 @@ const RULES: Rule[] = [
     id: "claude",
     label: "Claude",
     icon: "Sun",
-    color: "#d97757",
+    color: "#d97757", // taste-skill-ignore: Claude brand mark, not a page accent
     test: /claude|anthropic|sonnet|opus|haiku/i,
   },
   {
@@ -73,7 +73,7 @@ const RULES: Rule[] = [
     id: "kimi",
     label: "Kimi",
     icon: "Moon",
-    color: "#8b5cf6",
+    color: "#8b5cf6", // taste-skill-ignore: Kimi brand mark
     test: /kimi|moonshot/i,
   },
   {
@@ -101,7 +101,7 @@ const RULES: Rule[] = [
     id: "antigravity",
     label: "Antigravity",
     icon: "Triangle",
-    color: "#8b5cf6",
+    color: "#8b5cf6", // taste-skill-ignore: Antigravity brand mark
     test: /antigravity/i,
   },
   {
