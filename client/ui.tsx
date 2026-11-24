@@ -142,6 +142,12 @@ export function Meter({
   height?: number;
 }) {
   const visible = segments.filter((segment) => segment.value > 0);
+  // A lone percentage segment would otherwise take all free space; pad it so
+  // the track shows the remainder.
+  const drawn =
+    visible.length === 1 && visible[0].value < 100
+      ? [...visible, { key: "__track", value: 100 - visible[0].value, color: "transparent" }]
+      : visible;
   return (
     <View
       style={{
@@ -152,7 +158,7 @@ export function Meter({
         backgroundColor: theme.colors.surface2,
       }}
     >
-      {visible.map((segment) => (
+      {drawn.map((segment) => (
         <View
           key={segment.key}
           style={{ flex: segment.value, backgroundColor: segment.color }}

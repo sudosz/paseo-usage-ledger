@@ -20,8 +20,6 @@ export type ChartView = "curve" | "bars";
 type Point = { at: number; total: number; cacheRead: number; cost: number };
 type Series = { id: string; name: string; points: Point[] };
 
-const GRID_LINES = [0, 1, 2, 3, 4];
-
 function valueOf(point: Point | undefined, metric: ChartMetric): number {
   if (!point) return 0;
   if (metric === "cached") return point.cacheRead;
@@ -299,17 +297,17 @@ export function FlowChart({
 
   const grid = (
     <>
-      {GRID_LINES.map((line) => (
+      {plot.scale.ticks.map((tick) => (
         <View
-          key={line}
+          key={tick}
           pointerEvents="none"
           style={{
             position: "absolute",
             left: 0,
             right: 0,
-            top: `${line * 25}%`,
+            top: percentage(plotHeight - (tick / plot.scale.max) * plotHeight, plotHeight),
             borderTopWidth: 1,
-            borderColor: withAlpha(theme.colors.foregroundMuted, line === 0 ? 0.25 : 0.12),
+            borderColor: withAlpha(theme.colors.foregroundMuted, tick === 0 ? 0.25 : 0.12),
           }}
         />
       ))}
@@ -325,7 +323,14 @@ export function FlowChart({
             {grid}
             {view === "curve" ? (
               <View
-                style={{ position: "absolute", inset: 0, flexDirection: "row" }}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                  flexDirection: "row",
+                }}
                 onLayout={handleLayout}
                 accessibilityRole="image"
                 accessibilityLabel={`Stacked ${metric} by harness across ${bucketCount} buckets`}
@@ -367,7 +372,10 @@ export function FlowChart({
               <View
                 style={{
                   position: "absolute",
-                  inset: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
                   flexDirection: "row",
                   alignItems: "flex-end",
                   gap: 1,
