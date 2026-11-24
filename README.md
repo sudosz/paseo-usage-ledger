@@ -4,6 +4,10 @@ Token, cache, and API-equivalent cost analytics for Paseo agents, across OpenCod
 
 Open **Usage Ledger** from the sidebar footer. The footer line shows 24h processed tokens, a cache meter, and estimated cost; click it for a compact breakdown. The full screen adds the range switch, composition, chart, harness cards, and a model table with inline drilldown.
 
+![Usage Ledger dashboard](docs/dashboard.png)
+
+![Sidebar footer and 24h popover](docs/footer.png)
+
 ## What it shows
 
 - 24h / 7d / 30d / 90d
