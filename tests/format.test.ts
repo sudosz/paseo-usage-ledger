@@ -11,8 +11,9 @@ test("token formatting is compact and deterministic", () => {
 });
 
 test("cost formatting keeps small values visible", () => {
-  assert.equal(formatUsd(0), "$0.00");
-  assert.equal(formatUsd(0.0012), "$0.0012");
+  assert.equal(formatUsd(0), "$0");
+  assert.equal(formatUsd(0.0012), "<$0.01");
+  assert.equal(formatUsd(12.345), "$12.35");
   assert.equal(formatUsd(3107.62), "$3.11K");
 });
 
