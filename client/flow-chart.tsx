@@ -13,6 +13,7 @@ import type { Range } from "../shared/contracts";
 import { formatBucket, formatTokens, formatUsd } from "./format";
 import { niceScale, sampleCurve } from "./chart-scale";
 import { harnessColor, withAlpha } from "./palette";
+import { ProviderMark } from "./provider-mark";
 
 export type ChartMetric = "tokens" | "cached" | "cost";
 export type ChartView = "curve" | "bars";
@@ -166,16 +167,9 @@ export function FlowChart({
 
   const legend = (
     <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 6 }}>
-      {series.map((entry, index) => (
+      {series.map((entry) => (
         <View key={entry.id} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <View
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: 2,
-              backgroundColor: colors[index % colors.length],
-            }}
-          />
+          <ProviderMark theme={theme} input={{ harness: entry.id }} size={13} />
           <Text style={{ color: theme.colors.foregroundMuted, fontSize: 11.5 }}>
             {entry.name}
           </Text>
