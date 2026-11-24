@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { defineRpc } from "@getpaseo/plugin";
 import { z } from "zod";
 
