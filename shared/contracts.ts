@@ -43,6 +43,19 @@ export const harness = z.object({
   cachePct: z.number(),
 });
 
+export const harnessPoint = z.object({
+  at: z.number(),
+  total: z.number(),
+  cacheRead: z.number(),
+  cost: z.number(),
+});
+
+export const harnessSeries = z.object({
+  id: z.string(),
+  name: z.string(),
+  points: z.array(harnessPoint),
+});
+
 export const model = z.object({
   model: z.string(),
   provider: z.string(),
@@ -72,6 +85,7 @@ export const summary = defineRpc({
     pricedTokens: z.number(),
     unpricedTokens: z.number(),
     series: z.array(point),
+    harnessSeries: z.array(harnessSeries),
     harnesses: z.array(harness),
     models: z.array(model),
     notes: z.array(z.string()),
