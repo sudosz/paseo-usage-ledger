@@ -97,21 +97,20 @@ export function FlowChart({
   );
   const trackHover = useCallback(
     (event: ViewPointerEvent) => {
-      const native = event.nativeEvent as unknown as { locationX?: number; offsetX?: number };
-      if (typeof native.locationX === "number") {
-        selectAt(native.locationX);
-        return;
-      }
-      if (typeof native.offsetX === "number") {
-        selectAt(native.offsetX);
-        return;
-      }
+      // On web the pointer often lands on a child sliver, so locationX is
+      // relative to that sliver and would always select bucket zero. Prefer
+      // the pointer's viewport position measured against the plot itself.
       const pointer = event as unknown as {
         clientX: number;
         currentTarget?: { getBoundingClientRect?(): { left: number; width: number } };
       };
       const bounds = pointer.currentTarget?.getBoundingClientRect?.();
-      if (bounds && bounds.width > 0) selectAt(pointer.clientX - bounds.left);
+      if (bounds && bounds.width > 0 && Number.isFinite(pointer.clientX)) {
+        selectAt(pointer.clientX - bounds.left);
+        return;
+      }
+      const native = event.nativeEvent as unknown as { locationX?: number };
+      if (typeof native.locationX === "number") selectAt(native.locationX);
     },
     [selectAt],
   );
