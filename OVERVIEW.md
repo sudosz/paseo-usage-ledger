@@ -6,7 +6,7 @@ Token, cache, and API-equivalent cost analytics for Paseo agents.
 
 - **Sidebar row:** "Usage Ledger" opens the screen.
 - **Sidebar footer:** 24h tokens, cache meter, cost, and a popover with the harness split.
-- **Usage Ledger screen:** hero, range switch, composition meter, four token cards, stacked harness chart, harness cards, model table, and cost-assumption notes.
+- **Usage Ledger screen:** hero, range switch, composition meter, four token cards, stacked harness chart, harness cards, model table, automatic provider marks, and cost-assumption notes.
 
 Controls:
 
@@ -31,6 +31,7 @@ Controls:
 - Cost uses the reported log cost when present; otherwise the bundled rate table.
 - A model with no reported cost and no bundled rate is **Unpriced** and excluded from cost, never plotted as free.
 - Harness colors are fixed identity colors, not theme-accent or usage-rank colors.
+- Provider marks are detected from `model`, `provider`, then `harness`; model vendors win over gateways, and unknown names get a neutral `Cpu` mark. No network or brand asset is needed.
 
 ## Architecture
 
@@ -39,6 +40,7 @@ Controls:
 - `server/ledger.ts` — filesystem/SQLite sources, mtime+size JSONL cache, 60s summary cache, single-flight refresh.
 - `client/flow-chart.tsx` — stacked area/bars drawn with Views because plugins cannot load SVG.
 - `client/sidebar.tsx` — navigation row, ccusage-style footer, and popover.
+- `client/provider-rules.ts` + `provider-mark.tsx` — pure name detection and the tinted provider chip.
 - `shared/contracts.ts` — zod RPC contract; `ledger.summary` takes `{ range, refresh? }`.
 
 ## Cost of a refresh
@@ -55,7 +57,7 @@ Controls:
 
 - `npm run lint` — oxlint over client, server, shared, tests, and bench.
 - `npm run typecheck` — strict TypeScript.
-- `npm test` — parsers, aggregation, pricing, formatting, palette stability, chart scale.
+- `npm test` — parsers, aggregation, pricing, formatting, palette stability, provider detection, chart scale.
 - `npm run bench -- --assert` — parse throughput, 200k-event aggregation, summary time, heap growth.
 - `npm pack --dry-run` — plugin package contents.
 - GitHub Actions runs all checks on Node 22.

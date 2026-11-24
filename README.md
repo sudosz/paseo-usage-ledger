@@ -10,6 +10,10 @@ Open it from **Usage Ledger** in the sidebar, or from the footer row. The footer
 
 ![Sidebar footer and 24h popover](docs/footer-dark.png)
 
+Harness cards and model rows get a provider mark from the logged names:
+
+![Provider marks on harness cards and model rows](docs/provider-marks.png)
+
 <details>
 <summary>Light theme</summary>
 
@@ -38,6 +42,7 @@ paseo plugin update usage-ledger
 - Per-harness sessions, cache rate, spend, and unpriced volume.
 - Per-model tokens, cache rate, share, blended cost per million tokens, and the full token split on expand.
 - **Unpriced** for any model without a reported cost or a bundled rate.
+- Automatic provider marks on harness and model rows. Claude, OpenAI, Codex, DeepSeek, Gemini, GLM, Kimi, Qwen, Mistral, Llama, Antigravity, OpenCode, Bifrost, and Ollama are recognized from the logged strings; unknown providers get a neutral chip. No brand assets are downloaded.
 
 The chart names its peak bucket. When a selected range begins before the first recorded usage, the footer says where the data starts instead of leaving an unexplained gap.
 
@@ -97,7 +102,7 @@ Run it yourself with `npm run bench -- --assert`. The benchmark is part of CI, s
 npm ci
 npm run lint        # oxlint
 npm run typecheck   # strict TypeScript
-npm test            # parsers, aggregation, pricing, formatting, palette, chart scale
+npm test            # parsers, aggregation, pricing, formatting, palette, provider detection, chart scale
 npm run bench -- --assert
 ```
 
