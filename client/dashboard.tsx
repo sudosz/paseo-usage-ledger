@@ -29,6 +29,47 @@ const VIEWS: Array<{ value: ChartView; label: string; icon: string }> = [
 
 const MODEL_PREVIEW = 8;
 
+const RANGE_DAYS: Record<Range, number> = { "24h": 1, "7d": 7, "30d": 30, "90d": 90 };
+
+function modelKey(model: { harness: string; provider: string; model: string }): string {
+  return `${model.harness}:${model.provider}:${model.model}`;
+}
+
+function DetailStat({
+  theme,
+  label,
+  value,
+}: {
+  theme: PluginScreenProps["theme"];
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={{ minWidth: 92, gap: 2 }}>
+      <Text
+        style={{
+          color: theme.colors.foregroundMuted,
+          fontSize: 9.5,
+          fontWeight: "600",
+          letterSpacing: 0.6,
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          color: theme.colors.foreground,
+          fontSize: 12,
+          fontWeight: "600",
+          fontVariant: ["tabular-nums"],
+        }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 function HeroStat({
   theme,
   label,
@@ -123,6 +164,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
   const [metric, setMetric] = useState<ChartMetric>("tokens");
   const [view, setView] = useState<ChartView>("curve");
   const [showAllModels, setShowAllModels] = useState(false);
+  const [expandedModel, setExpandedModel] = useState<string | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
   const query = useQuery({
     queryKey: ["usage-ledger", range],
@@ -373,9 +415,15 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
               />
               <HeroStat
                 theme={theme}
-                label="PROMPT TOKENS"
-                value={formatTokens(prompt)}
-                detail="input + cache read + write"
+                label="AVG / DAY"
+                value={formatUsd((total.cost ?? 0) / RANGE_DAYS[range])}
+                detail={`${formatTokens(prompt)} prompt tokens`}
+              />
+              <HeroStat
+                theme={theme}
+                label="COST / SESSION"
+                value={formatUsd(total.sessions > 0 ? total.cost / total.sessions : 0)}
+                detail={`${total.sessions} sessions`}
               />
               <HeroStat
                 theme={theme}
@@ -724,96 +772,172 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                   COST
                 </Text>
               </View>
-              {visibleModels.map((model, index) => (
-                <View
-                  key={`${model.harness}:${model.provider}:${model.model}`}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 14,
-                    paddingVertical: 11,
-                    borderBottomWidth: index === visibleModels.length - 1 ? 0 : 1,
-                    borderColor: theme.colors.border,
-                  }}
-                >
-                  <View style={{ flex: 2.4, gap: 3, paddingRight: 10 }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              {visibleModels.map((model, index) => {
+                const key = modelKey(model);
+                const expanded = expandedModel === key;
+                return (
+                  <View
+                    key={key}
+                    style={{
+                      borderBottomWidth: index === visibleModels.length - 1 ? 0 : 1,
+                      borderColor: theme.colors.border,
+                    }}
+                  >
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`${model.model}: ${formatTokens(model.processed)} tokens, ${model.priced ? formatUsd(model.cost) : "unpriced"}, ${formatPct(model.share)} share. ${expanded ? "Collapse" : "Expand"} details.`}
+                      accessibilityState={{ expanded }}
+                      onPress={() => setExpandedModel(expanded ? null : key)}
+                      style={({ hovered }: HoverState) => ({
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 14,
+                        paddingVertical: 11,
+                        backgroundColor: hovered || expanded ? theme.colors.surface0 : undefined,
+                      })}
+                    >
+                      <View style={{ flex: 2.4, gap: 3, paddingRight: 10 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              color: theme.colors.foreground,
+                              fontSize: 12.5,
+                              fontWeight: "600",
+                              flexShrink: 1,
+                            }}
+                          >
+                            {model.model}
+                          </Text>
+                          {model.priced ? null : (
+                            <Chip theme={theme} label="Unpriced" tone="warning" />
+                          )}
+                          <Icon
+                            name={expanded ? "ChevronDown" : "ChevronRight"}
+                            size={11}
+                            color={theme.colors.foregroundMuted}
+                          />
+                        </View>
+                        <Text
+                          numberOfLines={1}
+                          style={{ color: theme.colors.foregroundMuted, fontSize: 10 }}
+                        >
+                          {model.provider} · {model.harness} · {model.sessions} sessions ·{" "}
+                          {formatPct(model.share)} of tokens
+                        </Text>
+                        <Meter
+                          theme={theme}
+                          height={2}
+                          segments={[
+                            {
+                              key: "share",
+                              value: Math.max(0.5, model.share),
+                              color: withAlpha(theme.colors.accent, 0.5),
+                            },
+                          ]}
+                        />
+                      </View>
+                      {compact ? null : (
+                        <View style={{ width: 86, gap: 3, paddingRight: 8 }}>
+                          <Text style={{ color: theme.colors.foregroundMuted, fontSize: 10.5 }}>
+                            {formatPct(model.cachePct)}
+                          </Text>
+                          <Meter
+                            theme={theme}
+                            height={3}
+                            segments={[
+                              {
+                                key: "cache",
+                                value: Math.max(0.5, model.cachePct),
+                                color: theme.colors.accent,
+                              },
+                            ]}
+                          />
+                        </View>
+                      )}
                       <Text
-                        numberOfLines={1}
                         style={{
+                          width: 82,
+                          textAlign: "right",
                           color: theme.colors.foreground,
-                          fontSize: 12.5,
-                          fontWeight: "600",
-                          flexShrink: 1,
+                          fontSize: 11.5,
+                          fontVariant: ["tabular-nums"],
                         }}
                       >
-                        {model.model}
+                        {formatTokens(model.processed)}
                       </Text>
-                      {model.priced ? null : (
-                        <Chip theme={theme} label="Unpriced" tone="warning" />
-                      )}
-                    </View>
-                    <Text
-                      numberOfLines={1}
-                      style={{ color: theme.colors.foregroundMuted, fontSize: 10 }}
-                    >
-                      {model.provider} · {model.harness} · {model.sessions} sessions
-                    </Text>
-                    <Meter
-                      theme={theme}
-                      height={2}
-                      segments={[
-                        {
-                          key: "share",
-                          value: Math.max(0.5, model.share),
-                          color: withAlpha(theme.colors.accent, 0.5),
-                        },
-                      ]}
-                    />
+                      <Text
+                        style={{
+                          width: 88,
+                          textAlign: "right",
+                          color: model.priced
+                            ? theme.colors.foreground
+                            : theme.colors.statusWarning,
+                          fontSize: 11.5,
+                          fontWeight: "600",
+                          fontVariant: ["tabular-nums"],
+                        }}
+                      >
+                        {model.priced ? formatUsd(model.cost) : "Unpriced"}
+                      </Text>
+                    </Pressable>
+                    {expanded ? (
+                      <View
+                        style={{
+                          paddingHorizontal: 14,
+                          paddingTop: 2,
+                          paddingBottom: 12,
+                          gap: 8,
+                          backgroundColor: theme.colors.surface0,
+                        }}
+                      >
+                        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 8 }}>
+                          <DetailStat
+                            theme={theme}
+                            label="BLENDED / 1M"
+                            value={
+                              model.pricedTokens > 0
+                                ? formatUsd(model.cost / (model.pricedTokens / 1_000_000))
+                                : "—"
+                            }
+                          />
+                          <DetailStat
+                            theme={theme}
+                            label="CACHED"
+                            value={formatTokens(model.cacheRead)}
+                          />
+                          <DetailStat
+                            theme={theme}
+                            label="UNCACHED"
+                            value={formatTokens(model.input)}
+                          />
+                          <DetailStat
+                            theme={theme}
+                            label="CACHE WRITE"
+                            value={formatTokens(model.cacheWrite)}
+                          />
+                          <DetailStat
+                            theme={theme}
+                            label="OUTPUT"
+                            value={formatTokens(model.output)}
+                          />
+                          <DetailStat
+                            theme={theme}
+                            label="EST. COST"
+                            value={model.priced ? formatUsd(model.cost) : "—"}
+                          />
+                        </View>
+                        {model.unpricedTokens > 0 ? (
+                          <Text style={{ color: theme.colors.statusWarning, fontSize: 10.5 }}>
+                            {formatTokens(model.unpricedTokens)} tokens have no published rate and
+                            are excluded from cost.
+                          </Text>
+                        ) : null}
+                      </View>
+                    ) : null}
                   </View>
-                  {compact ? null : (
-                    <View style={{ width: 86, gap: 3, paddingRight: 8 }}>
-                      <Text style={{ color: theme.colors.foregroundMuted, fontSize: 10.5 }}>
-                        {formatPct(model.cachePct)}
-                      </Text>
-                      <Meter
-                        theme={theme}
-                        height={3}
-                        segments={[
-                          {
-                            key: "cache",
-                            value: Math.max(0.5, model.cachePct),
-                            color: theme.colors.accent,
-                          },
-                        ]}
-                      />
-                    </View>
-                  )}
-                  <Text
-                    style={{
-                      width: 82,
-                      textAlign: "right",
-                      color: theme.colors.foreground,
-                      fontSize: 11.5,
-                      fontVariant: ["tabular-nums"],
-                    }}
-                  >
-                    {formatTokens(model.processed)}
-                  </Text>
-                  <Text
-                    style={{
-                      width: 88,
-                      textAlign: "right",
-                      color: model.priced ? theme.colors.foreground : theme.colors.statusWarning,
-                      fontSize: 11.5,
-                      fontWeight: "600",
-                      fontVariant: ["tabular-nums"],
-                    }}
-                  >
-                    {model.priced ? formatUsd(model.cost) : "Unpriced"}
-                  </Text>
-                </View>
-              ))}
+                );
+              })}
               {models.length === 0 ? (
                 <EmptyState theme={theme} message="No model usage in this window." />
               ) : null}
