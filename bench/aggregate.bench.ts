@@ -125,13 +125,14 @@ console.log(
 );
 
 const failures: string[] = [];
-if (claudePerSecond < 20_000) failures.push(`Claude parse ${Math.round(claudePerSecond)} ops/s < 20k`);
-if (codexPerSecond < 20_000) failures.push(`Codex parse ${Math.round(codexPerSecond)} ops/s < 20k`);
-if (aggregatePerSecond < 100_000) {
-  failures.push(`aggregation ${Math.round(aggregatePerSecond)} ops/s < 100k`);
+if (claudePerSecond < 50_000) failures.push(`Claude parse ${Math.round(claudePerSecond)} ops/s < 50k`);
+if (codexPerSecond < 50_000) failures.push(`Codex parse ${Math.round(codexPerSecond)} ops/s < 50k`);
+if (aggregatePerSecond < 150_000) {
+  failures.push(`aggregation ${Math.round(aggregatePerSecond)} ops/s < 150k`);
 }
-if (heapAfter - heapBefore > 80 * 1024 * 1024) {
-  failures.push(`heap delta ${((heapAfter - heapBefore) / 1024 / 1024).toFixed(1)} MiB > 80 MiB`);
+if (summaryMs > 50) failures.push(`summary ${summaryMs.toFixed(1)} ms > 50 ms`);
+if (heapAfter - heapBefore > 60 * 1024 * 1024) {
+  failures.push(`heap delta ${((heapAfter - heapBefore) / 1024 / 1024).toFixed(1)} MiB > 60 MiB`);
 }
 if (result.totals.processed <= 0) failures.push("summary produced no tokens");
 
