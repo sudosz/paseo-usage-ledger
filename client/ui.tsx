@@ -188,8 +188,8 @@ export function MetricCard({
       style={{
         ...cardStyle(theme, 10),
         flexGrow: 1,
-        flexBasis: compact ? 140 : 156,
-        minWidth: 140,
+        flexBasis: compact ? 140 : 128,
+        minWidth: 120,
         padding: compact ? 12 : 14,
         gap: 7,
       }}
