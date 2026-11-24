@@ -81,13 +81,13 @@ Usage is scanned on demand, not per token.
 
 This is not a zero-allocation design. Parsing JSON and building maps allocate; the goal is bounded work and no per-token polling. The benchmark asserts the current floors:
 
-| Check | Floor | Latest local run |
+| Check | Floor | Observed locally |
 | --- | --- | --- |
-| Claude line parse | 50k ops/s | 918k ops/s |
-| Codex line parse | 50k ops/s | 939k ops/s |
-| Aggregate 200k events | 150k ops/s | 596k ops/s |
-| Summarize 200k events | under 50 ms | 0.4 ms |
-| Heap delta, 200k events | under 60 MiB | 23 MiB |
+| Claude line parse | 50k ops/s | 900k–950k ops/s |
+| Codex line parse | 50k ops/s | 900k–950k ops/s |
+| Aggregate 200k events | 150k ops/s | 550k–620k ops/s |
+| Summarize 200k events | under 50 ms | 0.4–0.5 ms |
+| Heap delta, 200k events | under 60 MiB | 13–23 MiB |
 
 Run it yourself with `npm run bench -- --assert`. The benchmark is part of CI, so a large regression fails the build rather than living in a comment.
 
