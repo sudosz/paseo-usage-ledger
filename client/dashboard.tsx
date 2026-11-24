@@ -768,16 +768,18 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                     Cache
                   </Text>
                 )}
-                <Text
-                  style={{
-                    width: 82,
-                    textAlign: "right",
-                    color: theme.colors.foregroundMuted,
-                    fontSize: 11,
-                  }}
-                >
-                  Tokens
-                </Text>
+                {compact ? null : (
+                  <Text
+                    style={{
+                      width: 82,
+                      textAlign: "right",
+                      color: theme.colors.foregroundMuted,
+                      fontSize: 11,
+                    }}
+                  >
+                    Tokens
+                  </Text>
+                )}
                 <Text
                   style={{
                     width: 88,
@@ -786,7 +788,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                     fontSize: 11,
                   }}
                 >
-                  Cost
+                  {compact ? "Cost · tokens" : "Cost"}
                 </Text>
               </View>
               {visibleModels.map((model, index) => {
@@ -829,14 +831,14 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                             numberOfLines={1}
                             style={{
                               color: theme.colors.foreground,
-                              fontSize: 12.5,
+                              fontSize: compact ? 12 : 12.5,
                               fontWeight: "600",
                               flexShrink: 1,
                             }}
                           >
                             {model.model}
                           </Text>
-                          {model.priced ? null : (
+                          {model.priced || compact ? null : (
                             <Chip theme={theme} label="Unpriced" tone="warning" />
                           )}
                           <Icon
@@ -882,31 +884,44 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                           />
                         </View>
                       )}
-                      <Text
-                        style={{
-                          width: 82,
-                          textAlign: "right",
-                          color: theme.colors.foreground,
-                          fontSize: 11.5,
-                          fontVariant: ["tabular-nums"],
-                        }}
-                      >
-                        {formatTokens(model.processed)}
-                      </Text>
-                      <Text
-                        style={{
-                          width: 88,
-                          textAlign: "right",
-                          color: model.priced
-                            ? theme.colors.foreground
-                            : theme.colors.statusWarning,
-                          fontSize: 11.5,
-                          fontWeight: "600",
-                          fontVariant: ["tabular-nums"],
-                        }}
-                      >
-                        {model.priced ? formatUsd(model.cost) : "Unpriced"}
-                      </Text>
+                      {compact ? null : (
+                        <Text
+                          style={{
+                            width: 82,
+                            textAlign: "right",
+                            color: theme.colors.foreground,
+                            fontSize: 11.5,
+                            fontVariant: ["tabular-nums"],
+                          }}
+                        >
+                          {formatTokens(model.processed)}
+                        </Text>
+                      )}
+                      <View style={{ width: 88, alignItems: "flex-end", gap: 1 }}>
+                        <Text
+                          style={{
+                            color: model.priced
+                              ? theme.colors.foreground
+                              : theme.colors.statusWarning,
+                            fontSize: 11.5,
+                            fontWeight: "600",
+                            fontVariant: ["tabular-nums"],
+                          }}
+                        >
+                          {model.priced ? formatUsd(model.cost) : "Unpriced"}
+                        </Text>
+                        {compact ? (
+                          <Text
+                            style={{
+                              color: theme.colors.foregroundMuted,
+                              fontSize: 9.5,
+                              fontVariant: ["tabular-nums"],
+                            }}
+                          >
+                            {formatTokens(model.processed)}
+                          </Text>
+                        ) : null}
+                      </View>
                     </Pressable>
                     {expanded ? (
                       <View
