@@ -5,6 +5,7 @@ import { useRpc, type PluginScreenProps } from "@getpaseo/plugin/client";
 import { summary, type Range } from "../shared/contracts";
 import { formatPct, formatTokens, formatUsd } from "./format";
 import { UsageChart } from "./chart";
+import { UsageCurve } from "./curve";
 
 const RANGES: Array<{ id: Range; label: string }> = [
   { id: "24h", label: "24h" },
@@ -26,6 +27,7 @@ function Card({ label, value, hint, theme }: { label: string; value: string; hin
 export function Dashboard({ theme, layout }: PluginScreenProps) {
   const rpc = useRpc(summary);
   const [range, setRange] = useState<Range>("30d");
+  const [chartMode, setChartMode] = useState<"curve" | "bars">("curve");
   const query = useQuery({
     queryKey: ["usage-ledger", range],
     queryFn: () => rpc({ range }),
@@ -72,11 +74,15 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
           </View>
 
           <View style={{ borderWidth: 1, borderColor: border, borderRadius: 8, padding: 16, gap: 12 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
               <Text style={{ ...text, fontSize: 17, fontWeight: "600" }}>Processed tokens</Text>
+              <View style={{ flexDirection: "row", gap: 6 }}>
+                {button("Curve chart", "Curve", () => setChartMode("curve"), chartMode === "curve")}
+                {button("Bar chart", "Bars", () => setChartMode("bars"), chartMode === "bars")}
+              </View>
               <Text style={muted}>{query.isFetching ? "refreshing" : `updated ${new Date(data.generatedAt).toLocaleTimeString()}`}</Text>
             </View>
-            <UsageChart points={data.series} theme={theme} compact={layout.compact} />
+            {chartMode === "curve" ? <UsageCurve points={data.series} theme={theme} compact={layout.compact} /> : <UsageChart points={data.series} theme={theme} compact={layout.compact} />}
           </View>
 
           <View style={{ borderWidth: 1, borderColor: border, borderRadius: 8, overflow: "hidden" }}>
