@@ -32,9 +32,12 @@ function useDailyUsage() {
   return useQuery({
     queryKey: ["usage-ledger", "24h"],
     queryFn: () => rpc({ range: "24h" }),
-    staleTime: 5 * 60_000,
+    staleTime: 60_000,
     retry: 0,
-    refetchOnWindowFocus: false,
+    // The footer is always mounted. A two-minute aggregate check is cheap
+    // because parsed JSONL files are cached by mtime and size.
+    refetchInterval: 120_000,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -255,14 +258,14 @@ export function UsagePopover({ theme, layout, openScreen }: PluginPopoverProps) 
               style={{
                 width: 54,
                 textAlign: "right",
-                color: harness.unpricedTokens > 0
+                color: harness.pricedTokens === 0
                   ? theme.colors.statusWarning
                   : theme.colors.foregroundMuted,
                 fontSize: 10.5,
                 fontVariant: ["tabular-nums"],
               }}
             >
-              {harness.unpricedTokens > 0 ? "Unpriced" : formatUsd(harness.cost)}
+              {harness.pricedTokens === 0 ? "Unpriced" : formatUsd(harness.cost)}
             </Text>
           </View>
         ))}

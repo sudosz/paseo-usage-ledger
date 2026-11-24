@@ -84,7 +84,7 @@ function HeroStat({
   tone?: "warning";
 }) {
   return (
-    <View style={{ minWidth: 118, gap: 3 }}>
+    <View style={{ minWidth: 100, gap: 3 }}>
       <Text
         style={{
           color: theme.colors.foregroundMuted,
@@ -97,7 +97,7 @@ function HeroStat({
       </Text>
       <Text
         style={{
-          color: tone === "warning" ? theme.colors.statusWarning : theme.colors.foreground,
+          color: theme.colors.foreground,
           fontSize: 18,
           fontWeight: "600",
           fontVariant: ["tabular-nums"],
@@ -105,7 +105,13 @@ function HeroStat({
       >
         {value}
       </Text>
-      <Text numberOfLines={1} style={{ color: theme.colors.foregroundMuted, fontSize: 10.5 }}>
+      <Text
+        numberOfLines={1}
+        style={{
+          color: tone === "warning" ? theme.colors.statusWarning : theme.colors.foregroundMuted,
+          fontSize: 10.5,
+        }}
+      >
         {detail}
       </Text>
     </View>
@@ -171,7 +177,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
     queryFn: () => rpc({ range }),
     staleTime: 60_000,
     retry: 0,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
   const data = query.data;
   const compact = layout.compact;
@@ -389,7 +395,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
               style={{
                 flexDirection: "row",
                 flexWrap: "wrap",
-                columnGap: 28,
+                columnGap: 18,
                 rowGap: 12,
                 paddingTop: 14,
                 borderTopWidth: 1,
@@ -429,7 +435,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                 theme={theme}
                 label="SCANNED"
                 value={formatAgo(data.generatedAt)}
-                detail="on demand, cached 60s"
+                detail="on demand · turn-aware cache"
               />
             </View>
           </>
@@ -631,6 +637,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
               {data.harnesses.map((harness, index) => {
                 const color = colors[index % colors.length];
                 const partiallyUnpriced = harness.unpricedTokens > 0;
+                const fullyUnpriced = harness.pricedTokens === 0;
                 return (
                   <View
                     key={harness.id}
@@ -676,7 +683,7 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                       segments={[
                         {
                           key: "share",
-                          value: harness.processed,
+                          value: share(harness.processed, total.processed),
                           color: withAlpha(color, 0.85),
                         },
                       ]}
@@ -688,21 +695,27 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                       >
                         {harness.sessions} sessions · {formatPct(harness.cachePct)} cached
                       </Text>
-                      {partiallyUnpriced ? (
-                        <Chip theme={theme} label="Unpriced" tone="warning" />
-                      ) : (
-                        <Text
-                          style={{
-                            color: theme.colors.foreground,
-                            fontSize: 11.5,
-                            fontWeight: "600",
-                            fontVariant: ["tabular-nums"],
-                          }}
-                        >
-                          {formatUsd(harness.cost)}
-                        </Text>
-                      )}
+                      <Text
+                        style={{
+                          color: fullyUnpriced
+                            ? theme.colors.statusWarning
+                            : theme.colors.foreground,
+                          fontSize: 11.5,
+                          fontWeight: "600",
+                          fontVariant: ["tabular-nums"],
+                        }}
+                      >
+                        {fullyUnpriced ? "Unpriced" : formatUsd(harness.cost)}
+                      </Text>
                     </View>
+                    {partiallyUnpriced ? (
+                      <Text
+                        numberOfLines={1}
+                        style={{ color: theme.colors.statusWarning, fontSize: 9.5 }}
+                      >
+                        includes {formatTokens(harness.unpricedTokens)} tokens without a rate
+                      </Text>
+                    ) : null}
                   </View>
                 );
               })}
@@ -827,12 +840,12 @@ export function Dashboard({ theme, layout }: PluginScreenProps) {
                         </Text>
                         <Meter
                           theme={theme}
-                          height={2}
+                          height={3}
                           segments={[
                             {
                               key: "share",
                               value: Math.max(0.5, model.share),
-                              color: withAlpha(theme.colors.accent, 0.5),
+                              color: withAlpha(theme.colors.accent, 0.65),
                             },
                           ]}
                         />
