@@ -20,5 +20,17 @@ test("cost formatting keeps small values visible", () => {
 test("known models are priced and unknown models stay unpriced", () => {
   assert.ok(rateFor("claude-opus-5-5"));
   assert.ok(rateFor("claude-sonnet-5-5"));
+  assert.deepEqual(rateFor("deepseek/deepseek-flash"), {
+    input: 0.3,
+    output: 1.2,
+    cacheRead: 0.006,
+    label: "DeepSeek V4.1 Flash (Official)",
+  });
+  assert.deepEqual(rateFor("bifrost/deepseek-official/deepseek-v4-pro"), {
+    input: 1.32,
+    output: 3.96,
+    cacheRead: 0.044,
+    label: "DeepSeek V4 Pro (Official)",
+  });
   assert.equal(rateFor("bifrost/code"), null);
 });

@@ -11,6 +11,8 @@ const RATES: Array<{ pattern: RegExp; rate: Rate }> = [
   { pattern: /^claude-sonnet/i, rate: { input: 3, output: 15, cacheRead: 0.3, label: "Claude Sonnet" } },
   { pattern: /^claude-haiku/i, rate: { input: 1, output: 5, cacheRead: 0.1, label: "Claude Haiku" } },
   { pattern: /^deepseek-v4\.1-flash/i, rate: { input: 0.28, output: 0.42, cacheRead: 0.028, label: "DeepSeek V4.1 Flash" } },
+  { pattern: /^deepseek-flash$/i, rate: { input: 0.3, output: 1.2, cacheRead: 0.006, label: "DeepSeek V4.1 Flash (Official)" } },
+  { pattern: /^deepseek-v4-pro$/i, rate: { input: 1.32, output: 3.96, cacheRead: 0.044, label: "DeepSeek V4 Pro (Official)" } },
   { pattern: /^glm-5\.3$/i, rate: { input: 0.6, output: 2.2, cacheRead: 0.06, label: "GLM 5.3" } },
   { pattern: /^glm-5\.3-flash/i, rate: { input: 0.1, output: 0.4, cacheRead: 0.01, label: "GLM 5.3 Flash" } },
   { pattern: /^gemini-3\.8-flash/i, rate: { input: 0.3, output: 2.5, cacheRead: 0.075, label: "Gemini 3.8 Flash" } },
